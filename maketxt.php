@@ -116,6 +116,8 @@ function doImport($expfilename,$file) {
         //echo "<br>entered the if statement<br>";
         //array_push($filenamesNotFound, $data[0][0]);
         if (substr($data[0][0],-7) != "BEG.mp3"){
+            // that is, don't add files ending with BEG.mp3 to the notFoundString
+            // since those are likely to be announcements.
           $notFoundString .=  $data[0][0] . "\n";
         }
         //echo $notFoundString;
@@ -199,9 +201,11 @@ function doImport($expfilename,$file) {
         //if (prevbflag=='1') {
         //  prevfids=fids[i];
         //}
+        $prevSSSMClink='';
+        $prevsearchterm='';
         if ($prevdflag=='1') {
           //prevdfids=fids[i];
-            $prevsearchterm = preg_replace("/^SV/", "Concert", preg_replace("/^DD/", "Divine%20Discourse", preg_replace("/[^A-Za-z0-9]/", "%20", substr($data[$i][0],0,-4)) ) );
+            $prevsearchterm = preg_replace("/^SV/", "%20", preg_replace("/^DD/", "Divine%20Discourse", preg_replace("/[^A-Za-z0-9]/", "%20", substr($data[$i][0],0,-4)) ) );
             $prevSSSMClink = getSSSMClink($prevsearchterm);
             //echo "<br>Searching for ".$prevsearchterm." returns <br>";
             //echo $prevSSSMClink;
@@ -209,8 +213,7 @@ function doImport($expfilename,$file) {
             if ($prevSSSMClink == '') {
               // this file was not found
               //echo "<br>entered the if statement<br>";
-              //array_push($filenamesNotFound, $data[$i][0]);
-        //array_push($filenamesNotFound, $data[0][0]);
+              //array_push($filenamesNotFound, $data[$i][0]);        
             if (substr($data[$i][0],-7) != "BEG.mp3"){
               $notFoundString .=  $data[$i][0] . "\n";
             }
