@@ -248,7 +248,7 @@ function doImport($expfilename,$file) {
                    $prevduration.'","'.$prevSSSMClink.'","'.$prevnewflag.'","'.$prevfirstplayed.'"]]';
 
     if ($notFoundString!="The filenames not found are \n\n") {
-      echo "<br>Emailing files not found.<br>";
+      echo "<br>Emailing the list of files not found to the recipients ...<br>";
       //echo $notFoundString."<br>";
       mail('prem@sssmediacentre.org','files not found in SSSMC for '.$expfilename,$notFoundString);
     }
