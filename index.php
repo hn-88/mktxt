@@ -1,6 +1,6 @@
 <?php
 
-include(dbcred.php);
+include("dbcred.php");
 
 $dbHandle 		= pg_connect("dbname=$dbName user=$user password=$password host=$host port=$port");
 
