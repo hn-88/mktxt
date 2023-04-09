@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <title>CSV import form for Static Schedule Page</title>
+  </head>
+  <body>
+    <? var dropdowndata = createdateof(); ?>
+    <form action="https://script.google.com/macros/s/AK--Deployment-ID---pqrst7A/exec" method="get" >
+    <label for="strId">Choose a stream:</label>
+    <select id="strId" name="strId" >
+      <option value="1">PrasanthiStream</option>
+      <option value="5">TeluguStream</option>
+      <option value="6">DiscourseStream</option>      
+    </select>
+    <input type="hidden" name="act" value="import" >
+    <select name="dateof" id="dateof" >
+      <? for (var j = 0; j < dropdowndata.length; j++) { ?>
+            <option><?= dropdowndata[j] ?></option>
+          <? } ?>
+      </select>
+
+  <input type="submit" >
+</form>
+
+    
+  </body>
+</html>

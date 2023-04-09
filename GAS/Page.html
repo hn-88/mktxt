@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <script
+      src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.js">
+    </script>
+    <script>
+    var data = <?!= JSON.stringify(dataFromServerTemplate) ?>;  
+      $(function() {
+        
+        var exportfilename = data.ef;
+        console.log("exportfilename is "+exportfilename)
+        google.script.run
+        .withSuccessHandler(display)
+        .withFailureHandler(displaylogerr)
+            .doImport(exportfilename);
+        
+      });
+
+      function displaylogerr(data) {
+        var logger = document.getElementById('log');
+        logger.innerHTML += data;
+        //document.getElementById('log').innerHTML = '';
+      }
+
+
+      function display(data) {
+        document.getElementById('typingdiv').innerHTML = '<br><br>';
+        document.getElementById('log').innerHTML +=  data;
+          
+      }
+
+       
+
+    </script>
+  </head>
+  <body>
+
+    <? var dropdowndata = createdateof(); ?>
+    
+    <div id='typingdiv'>
+      <h3 id='seccounter'> </h3>
+      <script>
+      // Set the date we're counting down to
+      var sec = 1;
+
+      // Update the count down every 1 second
+      
+      var x = setInterval(function() {
+        try {
+        document.getElementById("seccounter").innerHTML = '&nbsp;&nbsp;&nbsp;&nbsp;' + sec + " seconds have passed.";          
+        sec++;
+        }
+        catch (err) {
+          // error because the setInterval cannot find the element
+          // after the ajax completes and overwrites the div.
+          clearInterval(x);
+        }
+      }, 1000);
+      
+      </script>
+      <p id="typing"><img src="https://hn-88.github.io/program/img/typinggif.gif" alt='Wait...'> </p>
+    </div>
+    <div id="logdiv"><h4 id="log"> </h4>  </div>
+    <br><hr><br>
+    <h4>We can add the next day's data after the import completes.</h4>
+    <form action="https://script.google.com/macros/s/AK--Deployment-ID---pqrst7A/exec" method="get" >
+    <label for="strId">Choose a stream:</label>
+    <select id="strId" name="strId" >
+      <option value="1">PrasanthiStream</option>
+      <option value="5">TeluguStream</option>
+      <option value="6">DiscourseStream</option>      
+    </select>
+    <input type="hidden" name="act" value="import" >
+    <select name="dateof" id="dateof" >
+      <? for (var j = 0; j < dropdowndata.length; j++) { ?>
+            <option><?= dropdowndata[j] ?></option>
+          <? } ?>
+      </select>
+
+  <input type="submit" >
+</form>
+
+  </body>
+</html>
