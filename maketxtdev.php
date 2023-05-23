@@ -1,6 +1,30 @@
-<html lang="en">
+<!DOCTYPE html>
 <head>
 <title>MakeTxt</title>
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js">
+	</script>
+<script>
+function testjson(pathname, docdivid) {
+	try {
+				$.ajax({
+					url: pathname,
+					type: 'GET',
+					success: function (data) {
+						schdata = JSON.parse(data);
+						$("#"+docdivid).html("<br>Json parsing test OK.<br>");
+						
+					},
+					error: function () {
+						alert(pathname + " not found!");
+					}
+				});
+	}
+	catch(err) {
+		 alert("Error - please contact HN and PB with "+ pathname + err);
+	} 
+					
+}
+</script>
 
 </head>
 
@@ -14,9 +38,7 @@ ob_implicit_flush(true);
 ob_end_flush();
 
 //$token = "github_pat_YourGitHubTokenAAAABBBBBCCCC123456789";
-//include("tokenfile.php");
-//$apiurl = 'https://api.github.com/repos/hn-88/program/contents/';
-//$uploaduseremail = 'hn-88@users.noreply.github.com';
+
 include("tokenfile-new.php");
 $apiurl = 'https://api.github.com/repos/SSSMC-web/schedule.sssmc/contents/program/';
 $uploaduseremail = 'SSSMC-web@users.noreply.github.com';
@@ -33,12 +55,12 @@ $playlistDatenodash     = "$year$month$date";
 
 $file = "../mkcsv/PrasanthiStream".$playlistDatenodash.".csv"; // Replace with the name of your CSV file
 $expfilename = "data/1-".$playlistDate.".txt";
-//doImport($expfilename,$file);
-//doUpload($expfilename,$token,$GLOBALS['uploaduseremail'],$GLOBALS['apiurl']);
+doImport($expfilename,$file);
+doUpload($expfilename,$token,$GLOBALS['uploaduseremail'],$GLOBALS['apiurl']);
 
 $file = "../mkcsv/DiscourseStream".$playlistDatenodash.".csv"; // Replace with the name of your CSV file
 $expfilename = "data/6-".$playlistDate.".txt";
-//doImport($expfilename,$file);
+doImport($expfilename,$file);
 doUpload($expfilename,$token,$GLOBALS['uploaduseremail'],$GLOBALS['apiurl']);
 
 function getSSSMClink($searchterm) {
@@ -280,8 +302,7 @@ function doImport($expfilename,$file) {
 }
 
 function doUpload($expfilename,$token,$uploaduseremail,$apiurl) {
-  //global $token;
-  //echo $token;
+  
   $shafilename='shahashes'.substr($expfilename,4);
   // from https://github.com/orgs/community/discussions/24723
 
@@ -292,21 +313,12 @@ function doUpload($expfilename,$token,$uploaduseremail,$apiurl) {
    echo $filtered.'"> </div>';
 
   $file_git = fread($myfile,filesize($expfilename));
-  //$file_git = "Contents of wall3.";
+  
 
 ?>
 
 <script>
-    jdata = "<?php echo $file_git; ?>";
-    testresult = document.getElementById("<?php echo 'testresult'.$filtered; ?>");
-    try {
-    jsondata = JSON.parse(jdata);
-    testresult.innerHtml = "<br>Json parsing test OK.<br>";
-    }
-    catch {
-    // if there is an error, notify in big letters
-    testresult.innerHtml = "<br><h1>Error parsing data for this file. Please notify HN or PB.</h1><br>";
-    }
+    testjson("<?php echo $expfilename ?>", "<?php echo 'testresult'.$filtered?>");
 </script>
 
 <?php
@@ -332,11 +344,12 @@ function doUpload($expfilename,$token,$uploaduseremail,$apiurl) {
   'User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.132 YaBrowser/19.9.3.314 Yowser/2.5 Safari/537.36',
   'Authorization: token '.$token
   ));
-  echo '<br>Uploading '.$expfilename.' to github ... <br>';
+  echo '<br>Uploading '.$expfilename.' to github ... ';
   $result_git = curl_exec($ch_git);
   $httpcode = curl_getinfo($ch_git, CURLINFO_HTTP_CODE);
   echo $httpcode;
-  echo $result_git;
+  //echo $result_git;
+  echo '<br>';
   $p_git = json_decode($result_git);
   echo "<br>Git content SHA is ";
   echo $p_git->content->sha;
