@@ -1,18 +1,47 @@
+<!DOCTYPE html>
+<head>
+<title>MakeTxt</title>
+<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js">
+	</script>
+<script>
+function testjson(pathname, docdivid) {
+	try {
+				$.ajax({
+					url: pathname,
+					type: 'GET',
+					success: function (data) {
+						schdata = JSON.parse(data);
+						$("#"+docdivid).html("<br>Json parsing test OK.<br>");
+						
+					},
+					error: function () {
+						alert(pathname + " not found!");
+					}
+				});
+	}
+	catch(err) {
+		 alert("Error - please contact HN and PB with "+ pathname + err);
+	} 
+					
+}
+</script>
+
+</head>
+
 <?php
 
-//ini_set('display_errors', 1);
-//ini_set('display_startup_errors', 1);
-//error_reporting(E_ALL);
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 
 ob_implicit_flush(true);
-$is_buffering_off = ob_end_flush();
-
-if ($is_buffering_off) {
-  echo "Output buffering is turned off.<br>";
-}
+ob_end_flush();
 
 //$token = "github_pat_YourGitHubTokenAAAABBBBBCCCC123456789";
-include("tokenfile.php");
+
+include("tokenfile-new.php");
+$apiurl = 'https://api.github.com/repos/SSSMC-web/schedule.sssmc/contents/program/';
+$uploaduseremail = 'SSSMC-web@users.noreply.github.com';
 
 $year                   = $_GET['year'];                settype($year ,   "string");
 $month                  = $_GET['month'];               settype($month,   "string");
@@ -29,7 +58,7 @@ file_put_contents($file, $filecontents);
 
 $expfilename = "data/5-".$playlistDate.".txt";
 doImport($expfilename,$file);
-doUpload($expfilename,$token);
+doUpload($expfilename,$token,$GLOBALS['uploaduseremail'],$GLOBALS['apiurl']);
 
 
 function getSSSMClink($searchterm) {
@@ -56,9 +85,7 @@ function getSSSMClink($searchterm) {
 
 
 function doImport($expfilename,$file) {
-  
   echo "Import started ... <br>";
-
   if (!file_exists($file)) {
       die("File not found");
   }
@@ -146,7 +173,7 @@ function doImport($expfilename,$file) {
   for ($i=1; $i<count($data);$i++) {
     echo $i." ... ";
     //ob_flush();
-    //flush();
+    flush();
     $escdescr = str_replace("'", '"', $data[$i][2]);
     if ($escdescr==$previousdescr){
         //if ($data[i][5]=='1') {
@@ -276,26 +303,41 @@ function doImport($expfilename,$file) {
 
 }
 
-function doUpload($expfilename,$token) {
-  global $token;
-  //echo $token;
+function doUpload($expfilename,$token,$uploaduseremail,$apiurl) {
+  
   $shafilename='shahashes'.substr($expfilename,4);
   // from https://github.com/orgs/community/discussions/24723
 
   $myfile = fopen($expfilename, "r") or die("Unable to open file!");
+  // add javascript test of JSON parsing
+  $filtered = strtolower(preg_replace('/[\W\s\/]+/', '-', $expfilename));
+   echo '<div id="testresult';
+   echo $filtered.'"> </div>';
+
   $file_git = fread($myfile,filesize($expfilename));
-  //$file_git = "Contents of wall3.";
+  
+
+?>
+
+<script>
+    testjson("<?php echo $expfilename ?>", "<?php echo 'testresult'.$filtered?>");
+</script>
+
+<?php
+
+
   $data_git = array(
   'sha'=>file_get_contents($shafilename),
   'message'=>'adding '.$expfilename,
   'content'=> base64_encode($file_git),
   'committer'=> array(
   'name'=>'maketxt.php',
-  'email' => 'hn-88@users.noreply.github.com'
+  'email' =>$uploaduseremail
   )
   );
   $data_string_git = json_encode($data_git);
-  $ch_git = curl_init('https://api.github.com/repos/hn-88/program/contents/'.$expfilename);
+  echo "<br>URL is ".$apiurl.$expfilename."<br>";
+  $ch_git = curl_init($apiurl.$expfilename);
   curl_setopt($ch_git, CURLOPT_CUSTOMREQUEST, "PUT");
   curl_setopt($ch_git, CURLOPT_POSTFIELDS, $data_string_git);
   curl_setopt($ch_git, CURLOPT_RETURNTRANSFER, true);
@@ -304,14 +346,21 @@ function doUpload($expfilename,$token) {
   'User-Agent: Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/76.0.3809.132 YaBrowser/19.9.3.314 Yowser/2.5 Safari/537.36',
   'Authorization: token '.$token
   ));
-  echo '<br>Uploading '.$expfilename.' to github ... <br>';
+  echo '<br>Uploading '.$expfilename.' to github ... ';
   $result_git = curl_exec($ch_git);
+  $httpcode = curl_getinfo($ch_git, CURLINFO_HTTP_CODE);
+  echo $httpcode;
   //echo $result_git;
+  echo '<br>';
   $p_git = json_decode($result_git);
-  echo "Done.<br>";
+  echo "<br>Git content SHA is ";
+  echo $p_git->content->sha;
+  echo "<br>Done.<br>";
   file_put_contents($shafilename,$p_git->content->sha);
 
 }
 
 
 ?>
+
+</html>
