@@ -1,9 +1,14 @@
+<html lang="en">
+<head>
+<title>MakeTxt</title>
+
+</head>
 
 <?php
 
-//ini_set('display_errors', 1);
-//ini_set('display_startup_errors', 1);
-//error_reporting(E_ALL);
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 
 ob_implicit_flush(true);
 ob_end_flush();
@@ -28,13 +33,13 @@ $playlistDatenodash     = "$year$month$date";
 
 $file = "../mkcsv/PrasanthiStream".$playlistDatenodash.".csv"; // Replace with the name of your CSV file
 $expfilename = "data/1-".$playlistDate.".txt";
-doImport($expfilename,$file);
-doUpload($expfilename,$token);
+//doImport($expfilename,$file);
+//doUpload($expfilename,$token,$GLOBALS['uploaduseremail'],$GLOBALS['apiurl']);
 
 $file = "../mkcsv/DiscourseStream".$playlistDatenodash.".csv"; // Replace with the name of your CSV file
 $expfilename = "data/6-".$playlistDate.".txt";
-doImport($expfilename,$file);
-doUpload($expfilename,$token);
+//doImport($expfilename,$file);
+doUpload($expfilename,$token,$GLOBALS['uploaduseremail'],$GLOBALS['apiurl']);
 
 function getSSSMClink($searchterm) {
   $searchapiprefix='https://api.sssmediacentre.org/web/search/?searchKey=';
@@ -274,43 +279,50 @@ function doImport($expfilename,$file) {
 
 }
 
-function doUpload($expfilename,$token) {
-  global $token;
+function doUpload($expfilename,$token,$uploaduseremail,$apiurl) {
+  //global $token;
   //echo $token;
   $shafilename='shahashes'.substr($expfilename,4);
   // from https://github.com/orgs/community/discussions/24723
 
   $myfile = fopen($expfilename, "r") or die("Unable to open file!");
   // add javascript test of JSON parsing
-   echo '<div id="testresult"> </div>';
+  $filtered = strtolower(preg_replace('/[\W\s\/]+/', '-', $expfilename));
+   echo '<div id="testresult';
+   echo $filtered.'"> </div>';
+
+  $file_git = fread($myfile,filesize($expfilename));
+  //$file_git = "Contents of wall3.";
+
 ?>
 
 <script>
-    const jdata = "<?php echo $myfile; ?>";
+    jdata = "<?php echo $file_git; ?>";
+    testresult = document.getElementById("<?php echo 'testresult'.$filtered; ?>");
     try {
-    var jsondata = JSON.parse(jdata);
+    jsondata = JSON.parse(jdata);
+    testresult.innerHtml = "<br>Json parsing test OK.<br>";
     }
     catch {
     // if there is an error, notify in big letters
-    const testresult = document.getElementById("testresult");
     testresult.innerHtml = "<br><h1>Error parsing data for this file. Please notify HN or PB.</h1><br>";
     }
 </script>
 
 <?php
 
-  $file_git = fread($myfile,filesize($expfilename));
-  //$file_git = "Contents of wall3.";
+
   $data_git = array(
   'sha'=>file_get_contents($shafilename),
   'message'=>'adding '.$expfilename,
   'content'=> base64_encode($file_git),
   'committer'=> array(
   'name'=>'maketxt.php',
-  'email' => $uploaduseremail
+  'email' =>$uploaduseremail
   )
   );
   $data_string_git = json_encode($data_git);
+  echo "<br>URL is ".$apiurl.$expfilename."<br>";
   $ch_git = curl_init($apiurl.$expfilename);
   curl_setopt($ch_git, CURLOPT_CUSTOMREQUEST, "PUT");
   curl_setopt($ch_git, CURLOPT_POSTFIELDS, $data_string_git);
